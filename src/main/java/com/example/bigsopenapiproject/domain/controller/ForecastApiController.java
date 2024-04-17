@@ -1,5 +1,6 @@
 package com.example.bigsopenapiproject.domain.controller;
 
+import com.example.bigsopenapiproject.domain.dto.WeatherDto;
 import com.example.bigsopenapiproject.domain.entity.Weather;
 import com.example.bigsopenapiproject.domain.service.JsonParserService;
 import com.example.bigsopenapiproject.domain.service.WeatherService;
@@ -14,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -80,11 +82,14 @@ public class ForecastApiController {
     }
 
     @GetMapping("/forecast")
-    public ResponseEntity<List<Weather>> getAllWeatherData() {
+    public ResponseEntity<List<WeatherDto>> getAllWeatherData() {
         List<Weather> weatherData = weatherService.getAllWeatherData();
-        if (weatherData.isEmpty()) {
+        List<WeatherDto> weatherDTOList = weatherData.stream()
+                .map(WeatherDto::new)
+                .collect(Collectors.toList());
+        if (weatherDTOList.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(weatherData);
+        return ResponseEntity.ok(weatherDTOList);
     }
 }
