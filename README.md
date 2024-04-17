@@ -44,6 +44,7 @@ Develop
   `POST /api/forecast` : API 응답 데이터 DB 적재
   
   `GET /api/forecast` : 저장된 데이터 조회, 데이터 없을 경우 Http status 204 오류 발생
+- API 명세서 링크 https://documenter.getpostman.com/view/28055548/2sA3Bn5XFd
 - apiUrl, SecretKey, DB 등 민감한 정보는 application-secret.properties 파일에 작성했습니다. (gitignore 적용)
 
 프로젝트 실행 주의사항
