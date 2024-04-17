@@ -57,7 +57,7 @@ public class WeatherService {
                 return code;
             }
         }
-        return CategoryCode.기타; // 없는 카테고리 코드인 경우
+        return CategoryCode.ETC; // 없는 카테고리 코드인 경우
     }
 
     // fcstValue를 해석하여 값을 반환하는 메서드
