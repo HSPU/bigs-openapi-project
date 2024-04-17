@@ -1,10 +1,12 @@
 package com.example.bigsopenapiproject.domain.controller;
 
+import com.example.bigsopenapiproject.domain.entity.Weather;
 import com.example.bigsopenapiproject.domain.service.JsonParserService;
 import com.example.bigsopenapiproject.domain.service.WeatherService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -72,5 +74,14 @@ public class ForecastApiController {
         // API 호출
         ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
         return responseEntity.getBody();
+    }
+
+    @GetMapping("/forecast")
+    public ResponseEntity<List<Weather>> getAllWeatherData() {
+        List<Weather> weatherData = weatherService.getAllWeatherData();
+        if (weatherData.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(weatherData);
     }
 }
