@@ -15,10 +15,12 @@ public class Weather {
     private Long id;
     private String baseDate;
     private String baseTime;
+    private String categoryName;
     private String category;
     private String fcstDate;
     private String fcstTime;
     private String fcstValue;
+    private String fcstValueUnit;
     private int nx;
     private int ny;
 }
