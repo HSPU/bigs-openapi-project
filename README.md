@@ -6,6 +6,7 @@ Open API 활용 Spring project
 ---
 - 1인 개발 (BackEnd)
 - 2024.04.12 - 2024.04.18
+- Mail : wooseok6742@gmail.com
 
 기술 스택
 ---
@@ -14,6 +15,7 @@ Open API 활용 Spring project
 - Spring Data JPA
 - MySQL
 - Gradle - Groovy
+- IntelliJ IDEA Ultimate
 - Github
 - Postman
 
@@ -38,6 +40,10 @@ Develop
 - 오픈 API 활용가이드를 참고하여 응답 데이터의 Category 명을 해석하고 필드를 생성하여 값을 저장하도록 구현하였습니다.
 - csv 파일을 활용하여 도시의 정보가 담긴 샘플데이터를 적재하도록 하였습니다.
 - API 테스트는 Postman 을 활용하였습니다.
+    
+  `POST /api/forecast` : API 응답 데이터 DB 적재
+  
+  `GET /api/forecast` : 저장된 데이터 조회, 데이터 없을 경우 Http status 204 오류 발생
 - apiUrl, SecretKey, DB 등 민감한 정보는 application-secret.properties 파일에 작성했습니다. (gitignore 적용)
 
 프로젝트 실행 주의사항
