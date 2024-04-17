@@ -64,33 +64,23 @@ public class WeatherService {
     public String interpretValue(String category, String fcstValue) {
         // 강수형태(PTY)일 때
         if ("PTY".equals(category)) {
-            switch (fcstValue) {
-                case "0":
-                    return "없음";
-                case "1":
-                    return "비";
-                case "2":
-                    return "비/눈";
-                case "3":
-                    return "눈";
-                case "4":
-                    return "소나기";
-                default:
-                    return "알 수 없음";
-            }
+            return switch (fcstValue) {
+                case "0" -> "없음";
+                case "1" -> "비";
+                case "2" -> "비/눈";
+                case "3" -> "눈";
+                case "4" -> "소나기";
+                default -> "알 수 없음";
+            };
         }
         // 하늘상태(SKY)일 때
         else if ("SKY".equals(category)) {
-            switch (fcstValue) {
-                case "1":
-                    return "맑음";
-                case "3":
-                    return "구름많음";
-                case "4":
-                    return "흐림";
-                default:
-                    return "알 수 없음";
-            }
+            return switch (fcstValue) {
+                case "1" -> "맑음";
+                case "3" -> "구름많음";
+                case "4" -> "흐림";
+                default -> "알 수 없음";
+            };
         } else {
             return fcstValue;
         }
