@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class WeatherService {
@@ -26,56 +25,61 @@ public class WeatherService {
 
     public void saveWeatherData(List<Map<String, Object>> weatherDataList) {
         for (Map<String, Object> item : weatherDataList) {
-            String baseDate = (String) item.get("baseDate");
-            String baseTime = (String) item.get("baseTime");
-            String category = (String) item.get("category");
-            String fcstDate = (String) item.get("fcstDate");
-            String fcstTime = (String) item.get("fcstTime");
-//            String fcstValue = (String) item.get("fcstValue");
-            int nx = (int) item.get("nx");
-            int ny = (int) item.get("ny");
-
-            // 카테고리 코드 해석하여 categoryName 필드에 저장
-            CategoryCode code = interpretCategoryCode(category);
-            String fcstValue = interpretValue(category, (String) item.get("fcstValue"));
-
-            Optional<Town> optionalTown = townRepository.findByNxAndNy(nx, ny);
-
-            optionalTown.ifPresentOrElse(
-                    town -> {
-                        Weather weather = new Weather();
-                        weather.setBaseDate(baseDate);
-                        weather.setBaseTime(baseTime);
-                        weather.setCategory(category);
-                        weather.setFcstDate(fcstDate);
-                        weather.setFcstTime(fcstTime);
-                        weather.setFcstValue(fcstValue);
-                        weather.setNx(nx);
-                        weather.setNy(ny);
-                        weather.setCategoryName(code.getName()); // 해석된 카테고리명 저장
-                        weather.setFcstValueUnit(code.getUnit());
-                        weather.setTown(town);
-
-                        weatherRepository.save(weather);
-                    },
-                    () -> {
-                        throw new RuntimeException("도시 정보를 찾을 수 없습니다. : nx = " + nx + ", ny = " + ny);
-                    }
-            );
+            saveWeatherItem(item);
         }
     }
 
-    // 카테고리 코드를 해석하여 CategoryCode enum 반환하는 메서드
+    private void saveWeatherItem(Map<String, Object> item) {
+        String baseDate = (String) item.get("baseDate");
+        String baseTime = (String) item.get("baseTime");
+        String category = (String) item.get("category");
+        String fcstDate = (String) item.get("fcstDate");
+        String fcstTime = (String) item.get("fcstTime");
+        int nx = (int) item.get("nx");
+        int ny = (int) item.get("ny");
+
+        CategoryCode code = interpretCategoryCode(category);
+        String fcstValue = interpretValue(category, (String) item.get("fcstValue"));
+
+        Town town = findTownByNxNy(nx, ny);
+
+        Weather weather = createWeather(baseDate, baseTime, category, fcstDate, fcstTime, nx, ny, code, fcstValue, town);
+        weatherRepository.save(weather);
+    }
+
+    private Town findTownByNxNy(int nx, int ny) {
+        return townRepository.findByNxAndNy(nx, ny)
+                .orElseThrow(() -> new RuntimeException("도시 정보를 찾을 수 없습니다. : nx = " + nx + ", ny = " + ny));
+    }
+
+    private Weather createWeather(String baseDate, String baseTime, String category, String fcstDate,
+                                  String fcstTime, int nx, int ny, CategoryCode code, String fcstValue, Town town) {
+        Weather weather = new Weather();
+        weather.setBaseDate(baseDate);
+        weather.setBaseTime(baseTime);
+        weather.setCategory(category);
+        weather.setFcstDate(fcstDate);
+        weather.setFcstTime(fcstTime);
+        weather.setFcstValue(fcstValue);
+        weather.setNx(nx);
+        weather.setNy(ny);
+        weather.setCategoryName(code.getName());
+        weather.setFcstValueUnit(code.getUnit());
+        weather.setTown(town);
+        return weather;
+    }
+
+    // 카테고리 코드를 해석하여 CategoryCode enum 반환
     private CategoryCode interpretCategoryCode(String category) {
         for (CategoryCode code : CategoryCode.values()) {
             if (code.name().equals(category)) {
                 return code;
             }
         }
-        return CategoryCode.ETC; // 없는 카테고리 코드인 경우
+        return CategoryCode.ETC;
     }
 
-    // fcstValue를 해석하여 값을 반환하는 메서드
+    // fcstValue를 해석하여 값을 반환
     public String interpretValue(String category, String fcstValue) {
         // 강수형태(PTY)일 때
         if ("PTY".equals(category)) {

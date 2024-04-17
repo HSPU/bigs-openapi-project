@@ -4,31 +4,30 @@ import com.example.bigsopenapiproject.domain.entity.Town;
 import com.example.bigsopenapiproject.domain.repository.TownRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ResourceUtils;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 @Component
 public class DataLoader {
 
     private final TownRepository townRepository;
+    private final ResourceLoader resourceLoader;
 
     @Autowired
-    public DataLoader(TownRepository townRepository) {
+    public DataLoader(TownRepository townRepository, ResourceLoader resourceLoader) {
         this.townRepository = townRepository;
+        this.resourceLoader = resourceLoader;
     }
 
     @PostConstruct
     public void loadCityData() {
-        try {
-            // CSV 파일 읽기
-            String path = ResourceUtils.getFile("classpath:city_data.csv").getPath();
-            BufferedReader reader = new BufferedReader(new FileReader(path));
-
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(resourceLoader.getResource("classpath:city_data.csv").getInputStream()))) {
             // 헤더 라인 스킵
-            String headerLine = reader.readLine();
+            reader.readLine();
 
             String line;
             while ((line = reader.readLine()) != null) {
@@ -45,9 +44,7 @@ public class DataLoader {
                     townRepository.save(town);
                 }
             }
-
-            reader.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
