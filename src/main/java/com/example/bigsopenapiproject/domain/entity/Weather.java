@@ -23,4 +23,8 @@ public class Weather {
     private String fcstValueUnit;
     private int nx;
     private int ny;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "town_id")
+    private Town town;
 }

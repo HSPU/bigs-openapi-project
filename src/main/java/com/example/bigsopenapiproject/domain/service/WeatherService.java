@@ -1,22 +1,27 @@
 package com.example.bigsopenapiproject.domain.service;
 
 import com.example.bigsopenapiproject.domain.entity.CategoryCode;
+import com.example.bigsopenapiproject.domain.entity.Town;
 import com.example.bigsopenapiproject.domain.entity.Weather;
+import com.example.bigsopenapiproject.domain.repository.TownRepository;
 import com.example.bigsopenapiproject.domain.repository.WeatherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class WeatherService {
 
     private final WeatherRepository weatherRepository;
+    private final TownRepository townRepository;
 
     @Autowired
-    public WeatherService(WeatherRepository weatherRepository) {
+    public WeatherService(WeatherRepository weatherRepository, TownRepository townRepository) {
         this.weatherRepository = weatherRepository;
+        this.townRepository = townRepository;
     }
 
     public void saveWeatherData(List<Map<String, Object>> weatherDataList) {
@@ -26,27 +31,37 @@ public class WeatherService {
             String category = (String) item.get("category");
             String fcstDate = (String) item.get("fcstDate");
             String fcstTime = (String) item.get("fcstTime");
-            String fcstValue = (String) item.get("fcstValue");
+//            String fcstValue = (String) item.get("fcstValue");
             int nx = (int) item.get("nx");
             int ny = (int) item.get("ny");
 
             // 카테고리 코드 해석하여 categoryName 필드에 저장
             CategoryCode code = interpretCategoryCode(category);
-            fcstValue = interpretValue(category, fcstValue);
+            String fcstValue = interpretValue(category, (String) item.get("fcstValue"));
 
-            Weather weather = new Weather();
-            weather.setBaseDate(baseDate);
-            weather.setBaseTime(baseTime);
-            weather.setCategory(category);
-            weather.setFcstDate(fcstDate);
-            weather.setFcstTime(fcstTime);
-            weather.setFcstValue(fcstValue);
-            weather.setNx(nx);
-            weather.setNy(ny);
-            weather.setCategoryName(code.getName()); // 해석된 카테고리명 저장
-            weather.setFcstValueUnit(code.getUnit());
+            Optional<Town> optionalTown = townRepository.findByNxAndNy(nx, ny);
 
-            weatherRepository.save(weather);
+            optionalTown.ifPresentOrElse(
+                    town -> {
+                        Weather weather = new Weather();
+                        weather.setBaseDate(baseDate);
+                        weather.setBaseTime(baseTime);
+                        weather.setCategory(category);
+                        weather.setFcstDate(fcstDate);
+                        weather.setFcstTime(fcstTime);
+                        weather.setFcstValue(fcstValue);
+                        weather.setNx(nx);
+                        weather.setNy(ny);
+                        weather.setCategoryName(code.getName()); // 해석된 카테고리명 저장
+                        weather.setFcstValueUnit(code.getUnit());
+                        weather.setTown(town);
+
+                        weatherRepository.save(weather);
+                    },
+                    () -> {
+                        throw new RuntimeException("도시 정보를 찾을 수 없습니다. : nx = " + nx + ", ny = " + ny);
+                    }
+            );
         }
     }
 
@@ -64,33 +79,23 @@ public class WeatherService {
     public String interpretValue(String category, String fcstValue) {
         // 강수형태(PTY)일 때
         if ("PTY".equals(category)) {
-            switch (fcstValue) {
-                case "0":
-                    return "없음";
-                case "1":
-                    return "비";
-                case "2":
-                    return "비/눈";
-                case "3":
-                    return "눈";
-                case "4":
-                    return "소나기";
-                default:
-                    return "알 수 없음";
-            }
+            return switch (fcstValue) {
+                case "0" -> "없음";
+                case "1" -> "비";
+                case "2" -> "비/눈";
+                case "3" -> "눈";
+                case "4" -> "소나기";
+                default -> "알 수 없음";
+            };
         }
         // 하늘상태(SKY)일 때
         else if ("SKY".equals(category)) {
-            switch (fcstValue) {
-                case "1":
-                    return "맑음";
-                case "3":
-                    return "구름많음";
-                case "4":
-                    return "흐림";
-                default:
-                    return "알 수 없음";
-            }
+            return switch (fcstValue) {
+                case "1" -> "맑음";
+                case "3" -> "구름많음";
+                case "4" -> "흐림";
+                default -> "알 수 없음";
+            };
         } else {
             return fcstValue;
         }
