@@ -15,7 +15,7 @@ public enum CategoryCode {
     WAV("파고", "M"),
     VEC("풍향", "deg"),
     WSD("풍속", "m/s"),
-    기타("기타", "");
+    ETC("기타", "");
 
     private final String name;
     private final String unit;
