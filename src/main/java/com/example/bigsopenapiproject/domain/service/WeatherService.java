@@ -95,4 +95,8 @@ public class WeatherService {
             return fcstValue;
         }
     }
+
+    public List<Weather> getAllWeatherData() {
+        return weatherRepository.findAll();
+    }
 }
