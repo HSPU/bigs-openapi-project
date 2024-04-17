@@ -35,19 +35,25 @@ public class ForecastApiController {
     }
 
     @PostMapping("/forecast")
-    public ResponseEntity<String> fetchAndSaveForecast() throws IOException {
-        // API를 호출하여 데이터를 가져옴
-        String jsonResponse = fetchDataFromApi();
+    public ResponseEntity<String> fetchAndSaveForecast() {
+        try {
+            // API를 호출하여 데이터를 가져옴
+            String jsonResponse = fetchDataFromApi();
 
-        // JSON log
-        log.info(jsonResponse);
+            // JSON log
+            log.info(jsonResponse);
 
-        // JSON 데이터 파싱
-        List<Map<String, Object>> weatherData = jsonParserService.parseJsonResponse(jsonResponse);
+            // JSON 데이터 파싱
+            List<Map<String, Object>> weatherData = jsonParserService.parseJsonResponse(jsonResponse);
 
-        weatherService.saveWeatherData(weatherData);
+            weatherService.saveWeatherData(weatherData);
 
-        return ResponseEntity.ok("단기예보 데이터 적재 성공");
+            return ResponseEntity.ok("단기예보 데이터 적재 성공");
+        } catch (IOException e) {
+            // API 호출 또는 데이터 파싱 중 예외 발생 시
+            log.error("API 호출 또는 데이터 파싱 중 예외 발생 : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("단기예보 데이터 적재 실패: " + e.getMessage());
+        }
     }
 
     private String fetchDataFromApi() throws IOException {
@@ -58,7 +64,7 @@ public class ForecastApiController {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        // API 호출을 위한 URL 설정
+        // API 호출을 위한 URL 설정 (경기도 의정부시 고산동 (송산1동) : NX = 62, NY = 130)
         String url = apiUrl + "?serviceKey=" + serviceKey
                 + "&numOfRows=20"
                 + "&pageNo=1"
