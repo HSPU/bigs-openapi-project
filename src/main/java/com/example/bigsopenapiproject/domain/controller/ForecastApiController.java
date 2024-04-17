@@ -37,20 +37,15 @@ public class ForecastApiController {
     @PostMapping("/forecast")
     public ResponseEntity<String> fetchAndSaveForecast() {
         try {
-            // API를 호출하여 데이터를 가져옴
             String jsonResponse = fetchDataFromApi();
-
-            // JSON log
-            log.info(jsonResponse);
+            log.info("받은 JSON 응답: {}", jsonResponse);
 
             // JSON 데이터 파싱
             List<Map<String, Object>> weatherData = jsonParserService.parseJsonResponse(jsonResponse);
-
             weatherService.saveWeatherData(weatherData);
 
             return ResponseEntity.ok("단기예보 데이터 적재 성공");
         } catch (IOException e) {
-            // API 호출 또는 데이터 파싱 중 예외 발생 시
             log.error("API 호출 또는 데이터 파싱 중 예외 발생 : {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("단기예보 데이터 적재 실패: " + e.getMessage());
         }
@@ -63,9 +58,18 @@ public class ForecastApiController {
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
+        String url = buildApiUrl();
 
-        // API 호출을 위한 URL 설정 (경기도 의정부시 고산동 (송산1동) : NX = 62, NY = 130)
-        String url = apiUrl + "?serviceKey=" + serviceKey
+        log.info("API URL: {}", url);
+
+        // API 호출
+        ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+        return responseEntity.getBody();
+    }
+
+    // API URL 설정 (경기도 의정부시 고산동 (송산1동) : NX = 62, NY = 130)
+    private String buildApiUrl() {
+        return apiUrl + "?serviceKey=" + serviceKey
                 + "&numOfRows=20"
                 + "&pageNo=1"
                 + "&dataType=JSON"
@@ -73,13 +77,6 @@ public class ForecastApiController {
                 + "&base_time=1100"
                 + "&nx=62"
                 + "&ny=130";
-
-        // URL log
-        log.info(url);
-
-        // API 호출
-        ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-        return responseEntity.getBody();
     }
 
     @GetMapping("/forecast")
